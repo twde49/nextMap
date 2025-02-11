@@ -1,67 +1,51 @@
 "use client";
-import React, {useEffect, useState, useContext} from "react";
-import {WebSocketContext} from "../providers/websocket-provider";
-import {
-    GoogleMap,
-    Marker,
-    DirectionsRenderer,
-    Autocomplete
-} from "@react-google-maps/api";
+import React, { useEffect, useState, useContext } from "react";
+import { WebSocketContext } from "@/providers/websocket-provider";
+import { GoogleMap, Marker, DirectionsRenderer, Autocomplete } from "@react-google-maps/api";
 
 export const defaultMapContainerStyle = {
     width: "100%",
     height: "80vh",
-    borderRadius: "15px 0px 0px 15px"
+    borderRadius: "15px 0px 0px 15px",
 };
 
 const defaultMapZoom = 15;
-
 const defaultMapOptions = {
     zoomControl: true,
     tilt: 0,
     gestureHandling: "auto",
     mapTypeId: "roadmap",
-    mapId: "55de5befcc72c4e9"
+    mapId: "55de5befcc72c4e9",
 };
 
 interface PlaceData {
     autocomplete?: google.maps.places.Autocomplete | null;
-    value: string | undefined; 
+    value: string | undefined;
     location?: google.maps.LatLngLiteral;
 }
 
-const MapComponent = () => {  
+const MapComponent = () => {
     const { userCount, positions } = useContext(WebSocketContext);
-
     const [newPositions, setNewPositions] = useState<Array<{ lat: number; lng: number }>>([]);
     const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
         lat: 35.8799866,
-        lng: 76.5048004
+        lng: 76.5048004,
     });
-    
+
     useEffect(() => {
-      console.log("User count updated:", userCount);
-    }, [userCount]);
-    
-    useEffect(() => {
-      console.log("Positions updated:", positions);
-      if (positions && mapCenter) {
-        const filteredPositions = positions.filter(pos => 
-          pos.lat !== mapCenter.lat || pos.lng !== mapCenter.lng
-        );
-        setNewPositions(filteredPositions);
-      }
+        if (positions && mapCenter) {
+            const filteredPositions = positions.filter(
+                (pos) => pos.lat !== mapCenter.lat || pos.lng !== mapCenter.lng
+            );
+            setNewPositions(filteredPositions);
+        }
     }, [positions, mapCenter]);
 
-    const [directionsResponse, setDirectionsResponse] =
-        useState<google.maps.DirectionsResult | null>(null);
-
-
+    const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
     const [destination, setDestination] = useState<PlaceData>({
         value: "",
-        autocomplete: null
+        autocomplete: null,
     });
-
     const [waypoints, setWaypoints] = useState<PlaceData[]>([]);
 
     const fetchRoute = (
@@ -77,8 +61,8 @@ const MapComponent = () => {
                 travelMode: google.maps.TravelMode.WALKING,
                 waypoints: waypointLocations.map((p) => ({
                     location: p,
-                    stopover: true
-                }))
+                    stopover: true,
+                })),
             },
             (result, status) => {
                 if (status === google.maps.DirectionsStatus.OK && result) {
@@ -87,7 +71,7 @@ const MapComponent = () => {
                     alert(`Échec de la requête d'itinéraire : ${status}`);
                 }
             }
-        );
+        ).catch()
     };
 
     useEffect(() => {
@@ -95,13 +79,12 @@ const MapComponent = () => {
             navigator.geolocation.getCurrentPosition((position) => {
                 const currentPosition = {
                     lat: position.coords.latitude,
-                    lng: position.coords.longitude
+                    lng: position.coords.longitude,
                 };
                 setMapCenter(currentPosition);
             });
         }
     }, []);
-
 
     const handleCreateRoute = () => {
         if (!destination.location) {
@@ -116,10 +99,8 @@ const MapComponent = () => {
         fetchRoute(mapCenter, destination.location, validWaypoints);
     };
 
-    const onLoadDestinationAutocomplete = (
-        autocomplete: google.maps.places.Autocomplete
-    ) => {
-        setDestination((prev) => ({...prev, autocomplete}));
+    const onLoadDestinationAutocomplete = (autocomplete: google.maps.places.Autocomplete) => {
+        setDestination((prev) => ({ ...prev, autocomplete }));
     };
 
     const onPlaceChangedDestination = () => {
@@ -132,8 +113,8 @@ const MapComponent = () => {
                     value: place.formatted_address || place.name || "",
                     location: {
                         lat: location.lat(),
-                        lng: location.lng()
-                    }
+                        lng: location.lng(),
+                    },
                 }));
             } else {
                 alert("Veuillez sélectionner une destination valide.");
@@ -144,14 +125,11 @@ const MapComponent = () => {
     const handleAddWaypoint = () => {
         setWaypoints((prev) => [
             ...prev,
-            {value: "", autocomplete: null, location: undefined}
+            { value: "", autocomplete: null, location: undefined },
         ]);
     };
 
-    const onLoadWaypointAutocomplete = (
-        autocomplete: google.maps.places.Autocomplete,
-        index: number
-    ) => {
+    const onLoadWaypointAutocomplete = (autocomplete: google.maps.places.Autocomplete, index: number) => {
         setWaypoints((prev) => {
             const newWaypoints = [...prev];
             newWaypoints[index].autocomplete = autocomplete;
@@ -172,8 +150,8 @@ const MapComponent = () => {
                         value: place.formatted_address || place.name || "",
                         location: {
                             lat: location.lat(),
-                            lng: location.lng()
-                        }
+                            lng: location.lng(),
+                        },
                     };
                     return newWaypoints;
                 });
@@ -183,13 +161,10 @@ const MapComponent = () => {
         }
     };
 
-
     return (
         <div className="w-full p-4">
             <div className="mb-4 p-4 bg-gray-100 rounded">
-                <h2 className="text-xl text-black font-bold mb-2">
-                    Créer un itinéraire
-                </h2>
+                <h2 className="text-xl text-black font-bold mb-2">Créer un itinéraire</h2>
                 <div className="mb-4">
                     <label htmlFor="destination" className="block text-black font-medium mb-1">
                         Destination :
@@ -213,9 +188,7 @@ const MapComponent = () => {
                     {waypoints.map((_, idx) => (
                         <div key={'waypoint'} className="mb-2">
                             <Autocomplete
-                                onLoad={(autocomplete) =>
-                                    onLoadWaypointAutocomplete(autocomplete, idx)
-                                }
+                                onLoad={(autocomplete) => onLoadWaypointAutocomplete(autocomplete, idx)}
                                 onPlaceChanged={() => onPlaceChangedWaypoint(idx)}
                             >
                                 <input
@@ -242,8 +215,10 @@ const MapComponent = () => {
                 >
                     Créer l&#39;itinéraire
                 </button>
-                <br/>
-                <span className="text-black">Nombres utilisateurs actuellement connectés : {userCount}</span>
+                <br />
+                <span className="text-black">
+                    Nombres utilisateurs actuellement connectés : {userCount}
+                </span>
             </div>
             <GoogleMap
                 mapContainerStyle={defaultMapContainerStyle}
@@ -251,7 +226,7 @@ const MapComponent = () => {
                 zoom={defaultMapZoom}
                 options={defaultMapOptions}
             >
-                <Marker position={mapCenter} title="Votre position"/>
+                <Marker position={mapCenter} title="Votre position" />
                 {destination.location && (
                     <Marker
                         position={destination.location}
@@ -272,18 +247,16 @@ const MapComponent = () => {
                 )}
                 {newPositions?.map((position, idx) => (
                     <Marker
-                        key={`user-${idx}`}
+                        key={`user-position-${position.lat}-${position.lng}`}
                         position={position}
                         title={`User ${idx + 1}`}
                         icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
                     />
                 ))}
-                {directionsResponse && (
-                    <DirectionsRenderer directions={directionsResponse}/>
-                )}
+                {directionsResponse && <DirectionsRenderer directions={directionsResponse} />}
             </GoogleMap>
         </div>
     );
 };
 
-export {MapComponent};
+export { MapComponent };

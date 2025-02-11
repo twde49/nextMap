@@ -1,5 +1,5 @@
 "use client"
-import { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 
@@ -23,6 +23,7 @@ export const WebSocketProvider = ({
   const [positions, setPositions] = useState<Array<{ lat: number; lng: number }>>(
     []
   );
+  console.log(socket)
 
   useEffect(() => {
     const newSocket = io("https://nextmapws.thibautstachnick.com/");
