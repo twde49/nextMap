@@ -1,6 +1,6 @@
 "use client";
 import React, {useEffect, useState, useContext} from "react";
-import {WebSocketContext} from "../context/WebSocketContext";
+import {WebSocketContext} from "../providers/websocket-provider";
 import {
     GoogleMap,
     Marker,
@@ -30,21 +30,28 @@ interface PlaceData {
     location?: google.maps.LatLngLiteral;
 }
 
-const MapComponent = () => {
+const MapComponent = () => {  
     const { userCount, positions } = useContext(WebSocketContext);
 
+    const [newPositions, setNewPositions] = useState<Array<{ lat: number; lng: number }>>([]);
+    const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
+        lat: 35.8799866,
+        lng: 76.5048004
+    });
+    
     useEffect(() => {
       console.log("User count updated:", userCount);
     }, [userCount]);
     
     useEffect(() => {
       console.log("Positions updated:", positions);
-    }, [positions]);
-    
-    const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
-        lat: 35.8799866,
-        lng: 76.5048004
-    });
+      if (positions && mapCenter) {
+        const filteredPositions = positions.filter(pos => 
+          pos.lat !== mapCenter.lat || pos.lng !== mapCenter.lng
+        );
+        setNewPositions(filteredPositions);
+      }
+    }, [positions, mapCenter]);
 
     const [directionsResponse, setDirectionsResponse] =
         useState<google.maps.DirectionsResult | null>(null);
@@ -254,7 +261,7 @@ const MapComponent = () => {
                 )}
                 {waypoints.map(
                     (wp, idx) =>
-                        wp.location && (
+                        wp.location && wp.location !== mapCenter && (
                             <Marker
                                 key={'marker'}
                                 position={wp.location}
@@ -263,7 +270,7 @@ const MapComponent = () => {
                             />
                         )
                 )}
-                {positions?.map((position, idx) => (
+                {newPositions?.map((position, idx) => (
                     <Marker
                         key={`user-${idx}`}
                         position={position}

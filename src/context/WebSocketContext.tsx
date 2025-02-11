@@ -1,29 +1,20 @@
-import { createContext, useState } from 'react';
-import type { ReactNode } from 'react'
-import WebSocketComponent from '../components/webSocketComponent';
+"use client"
+import { createContext, useContext } from "react";
 
 interface WebSocketContextType {
   userCount: number;
-  positions: number[];
-  setUserCount: (count: number) => void;
-  setPositions: (positions: number[]) => void;
+  positions: Array<{ lat: number; lng: number }>;
 }
 
 export const WebSocketContext = createContext<WebSocketContextType>({
   userCount: 0,
   positions: [],
-  setUserCount: () => {},
-  setPositions: () => {}
 });
 
-export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const [userCount, setUserCount] = useState(0);
-  const [positions, setPositions] = useState<number[]>([]);
-
-  return (
-    <WebSocketContext.Provider value={{ userCount, positions, setUserCount, setPositions }}>
-      <WebSocketComponent />
-      {children}
-    </WebSocketContext.Provider>
-  );
+export const useWebSocket = () => {
+  const context = useContext(WebSocketContext);
+  if (!context) {
+    throw new Error("useWebSocket must be used within a WebSocketProvider");
+  }
+  return context;
 };
