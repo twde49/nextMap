@@ -1,5 +1,7 @@
+"use client"
 import {MapProvider} from "@/providers/map-provider";
 import {MapComponent} from "@/components/map"
+import WebSocketComponent from "@/components/webSocketComponent";
 
 export default function Home() {
   return (
@@ -7,6 +9,7 @@ export default function Home() {
       <MapProvider>
         <main>
           <MapComponent />
+          <WebSocketComponent />
         </main>
       </MapProvider>
     </>
