@@ -23,10 +23,23 @@ export const WebSocketProvider = ({
   const [positions, setPositions] = useState<Array<{ lat: number; lng: number }>>(
     []
   );
+  console.log(socket)
 
   useEffect(() => {
     const newSocket = io("https://nextmapws.thibautstachnick.com/");
     setSocket(newSocket);
+
+    newSocket.on("initialData", (data) => {
+      setUserCount(data.userCount);
+      setPositions(data.positions);
+    });
+
+    newSocket.on("updateData", (data) => {
+      setUserCount((prev) => (prev !== data.userCount ? data.userCount : prev));
+      setPositions((prev) =>
+        JSON.stringify(prev) !== JSON.stringify(data.positions) ? data.positions : prev
+      );
+    });
 
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -58,20 +71,11 @@ export const WebSocketProvider = ({
       return () => navigator.geolocation.clearWatch(watchId);
     }
 
-    newSocket.on("initialData", (data) => {
-      setUserCount(data.userCount);
-      setPositions(data.positions);
-    });
-
-    newSocket.on("updateData", (data) => {
-      setUserCount(data.userCount);
-      setPositions(data.positions);
-    });
-
     return () => {
       newSocket.off("initialData");
       newSocket.off("updateData");
       newSocket.disconnect();
+      console.log('terminated')
     };
   }, []);
 
