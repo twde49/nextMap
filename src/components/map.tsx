@@ -31,8 +31,16 @@ interface PlaceData {
 }
 
 const MapComponent = () => {
-    const { userCount } = useContext(WebSocketContext);
+    const { userCount, positions } = useContext(WebSocketContext);
 
+    useEffect(() => {
+      console.log("User count updated:", userCount);
+    }, [userCount]);
+    
+    useEffect(() => {
+      console.log("Positions updated:", positions);
+    }, [positions]);
+    
     const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
         lat: 35.8799866,
         lng: 76.5048004
@@ -255,6 +263,14 @@ const MapComponent = () => {
                             />
                         )
                 )}
+                {positions?.map((position, idx) => (
+                    <Marker
+                        key={`user-${idx}`}
+                        position={position}
+                        title={`User ${idx + 1}`}
+                        icon="https://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
+                    />
+                ))}
                 {directionsResponse && (
                     <DirectionsRenderer directions={directionsResponse}/>
                 )}
